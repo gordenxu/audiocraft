@@ -405,6 +405,11 @@ class StreamingMultiheadAttention(StreamingModule):
                     seq_len = query.shape[1]
                     attn_mask = attn_mask.to(q.dtype)
                     attn_mask = attn_mask[:seq_len, :seq_len]
+                    if time_dim == 1:
+                        n, _, h, *_ = q.shape
+                    else:
+                        n, h, *_ = q.shape
+                    attn_mask = attn_mask.expand(n, h, -1, -1)
                 p = self.dropout if self.training else 0
                 if _efficient_attention_backend == 'torch':
                     x = torch.nn.functional.scaled_dot_product_attention(
